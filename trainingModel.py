@@ -11,6 +11,11 @@ from data_preprocessing import clustering
 from best_model_finder import tuner
 from file_operations import file_methods
 from application_logging import logger
+from MongoDB.mongoDbDatabase import mongoDBOperation
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from Email_Trigger.send_email import email
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
@@ -22,6 +27,9 @@ class trainModel:
     def __init__(self):
         self.log_writer = logger.App_Logger()
         self.file_object = 'ModelTrainingLog'
+        self.dbObj = mongoDBOperation()
+        self.performance_list = []
+        self.emailObj = email()
 
     def trainingModel(self):
         # Logging the start of Training
@@ -90,10 +98,22 @@ class trainModel:
                 #saving the best model to the directory.
                 file_op = file_methods.File_Operation(self.file_object,self.log_writer)
                 save_model=file_op.save_model(best_model,best_model_name+str(i))
+                self.performance_list.extend(model_finder.perf_data)
 
             # logging the successful Training
-            print('Successful End of Training')
+            print(self.performance_list)
+            print('Inserting Performance Metrics to MongoDB')
+            for dict_l in self.performance_list:
+                self.dbObj.insertOneRecord('creditCardDefaultersDB', 'performance_metrics', dict_l)
             self.log_writer.log(self.file_object, 'Successful End of Training')
+
+            # Triggering Email
+            msg = MIMEMultipart()
+            msg['Subject'] = 'CreditCardDefaulters - Model Train | ' + str(datetime.now())
+            body = 'Model Training Done Successfully. Please find the models in models directory... <br><br> Thanks and Regards, <br> Rahul Garg'
+            msg.attach(MIMEText(body, 'html'))
+            to_addr = ['rahulgarg366@gmail.com']
+            self.emailObj.trigger_mail(to_addr, [], msg)
 
         except Exception as e:
             # logging the unsuccessful Training

@@ -26,7 +26,7 @@ def predictRouteClient():
     try:
         if request.json is not None:
             path = request.json['filepath']
-
+            #path = 'Prediction_Batch_files'
             pred_val = pred_validation(path) #object initialization
 
             pred_val.prediction_validation() #calling the prediction_validation function
@@ -38,7 +38,7 @@ def predictRouteClient():
             return Response("Prediction File created at %s!!!" % path)
         elif request.form is not None:
             path = request.form['filepath']
-
+            #path = 'Prediction_Batch_files'
             pred_val = pred_validation(path) #object initialization
 
             pred_val.prediction_validation() #calling the prediction_validation function
@@ -68,7 +68,7 @@ def trainRouteClient():
         path = 'Training_Batch_Files'
         train_valObj = train_validation(path) #object initialization
 
-        #train_valObj.train_validation()#calling the training_validation function
+        train_valObj.train_validation()#calling the training_validation function
 
 
         trainModelObj = trainModel() #object initialization

@@ -15,7 +15,6 @@ class train_validation:
         self.raw_data = Raw_Data_validation(path)
         self.dataTransform = dataTransform()
         self.dBOperation = dBOperation()
-        self.cwd=os.getcwd()
         self.file_object = 'Training_Main_Log'
         self.log_writer = logger.App_Logger()
         self.azureObj = AzureBlobStorage()
@@ -63,5 +62,16 @@ class train_validation:
             # export data in table to csvfile
             self.dBOperation.selectingDatafromtableintocsv('creditCardDefaultersDB')
             print('Train Validation Done.....')
+
+            # Triggering Email
+            msg = MIMEMultipart()
+            msg['Subject'] = 'CreditCardDefaulters - Train Validation | ' + str(datetime.now())
+            file_list = self.azureObj.listDirFiles('Training_Bad_Raw_Files_Validated')
+            file_str = ','.join(file_list)
+            body = 'Model Train Validation Done Successfully... <br><br> Fault File List: <br>' + file_str + '<br><br>Thanks and Regards, <br> Rahul Garg'
+            msg.attach(MIMEText(body, 'html'))
+            to_addr = ['rahulgarg366@gmail.com']
+            self.emailObj.trigger_mail(to_addr, [], msg)
+
         except Exception as e:
             raise e

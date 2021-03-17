@@ -5,14 +5,20 @@ from data_preprocessing import preprocessing
 from data_ingestion import data_loader_prediction
 from application_logging import logger
 from Prediction_Raw_Data_Validation.predictionDataValidation import Prediction_Data_validation
-
+from AzureBlobStorage.azureBlobStorage import AzureBlobStorage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from Email_Trigger.send_email import email
+from datetime import datetime
 
 class prediction:
 
     def __init__(self,path):
-        self.file_object = open("Prediction_Logs/Prediction_Log.txt", 'a+')
+        self.file_object = 'Prediction_Log'
         self.log_writer = logger.App_Logger()
         self.pred_data_val = Prediction_Data_validation(path)
+        self.azureObj = AzureBlobStorage()
+        self.emailObj = email()
 
     def predictionFromModel(self):
 
@@ -51,11 +57,21 @@ class prediction:
                 model_name = file_loader.find_correct_model_file(i)
                 model = file_loader.load_model(model_name)
                 result=(model.predict(cluster_data))
-
+            print('Prediction Completed.... Saving the output')
             final= pd.DataFrame(list(zip(result)),columns=['Predictions'])
             path="Prediction_Output_File/Predictions.csv"
-            final.to_csv("Prediction_Output_File/Predictions.csv",header=True,mode='a+') #appends result to prediction file
+            self.azureObj.saveDataframeToCsv('Prediction_Output_File', 'Predictions.csv', final)
+            #final.to_csv("Prediction_Output_File/Predictions.csv",header=True,mode='a+') #appends result to prediction file
             self.log_writer.log(self.file_object,'End of Prediction')
+
+            # Triggering mail with confirmation
+            msg = MIMEMultipart()
+            msg['Subject'] = 'CreditCardDefaulters - Prediction Done | ' + str(datetime.now())
+            body = 'Model Prediction Done Successfully... <br><br> Thanks and Regards, <br> Rahul Garg'
+            msg.attach(MIMEText(body, 'html'))
+            to_addr = ['rahulgarg366@gmail.com']
+            self.emailObj.trigger_mail(to_addr, [], msg)
+
         except Exception as ex:
             self.log_writer.log(self.file_object, 'Error occured while running the prediction!! Error:: %s' % ex)
             raise ex

@@ -15,7 +15,7 @@ class email:
             receivers=to_addr
             receivers.extend(cc_addr)
             msg['To'] = ", ".join(to_addr)
-            from_addr='Wafer Detection <waferdetectionalert@gmail.com>'
+            from_addr='Credit Card Defaulters <creditdefaultersalert@gmail.com>'
             msg['From'] = from_addr
             if len(cc_addr)>0:
                 msg['Cc'] = ", ".join(cc_addr)

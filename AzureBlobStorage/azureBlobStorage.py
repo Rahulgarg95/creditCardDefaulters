@@ -7,7 +7,7 @@ import pandas as pd
 
 class AzureBlobStorage:
     def __init__(self):
-        self.conn_str='########'
+        self.conn_str='DefaultEndpointsProtocol=https;AccountName=creditcarddefaulters;AccountKey=/S4sxVWbAijzzHksiQoETfzzK/gGVl89K5ZRf6UFFRaKE4Th0gs1kh9swKdyz6RVVMBpECZwjs5UFP+3j6ossQ==;EndpointSuffix=core.windows.net'
         self.logger = App_Logger()
         self.azure_client = BlobServiceClient.from_connection_string(self.conn_str)
         self.file = 'AzureManagementLogs'
@@ -240,7 +240,10 @@ class AzureBlobStorage:
                 self.createFolder(folder_name)
             self.deleteFile(folder_name, file_name)
             container_client = self.azure_client.get_container_client(folder_name)
-            container_client.upload_blob(name=file_name, data=dill.dumps(object_name))
+            if '.PNG' in file_name:
+                container_client.upload_blob(name=file_name, data=object_name)
+            else:
+                container_client.upload_blob(name=file_name, data=dill.dumps(object_name))
         except Exception as e:
             message = 'Exception Found: Function => saveObject, Folder Name: ' + folder_name + ', File Name: ' + file_name
             self.logger.log(self.file, message + ' : ' + str(e))

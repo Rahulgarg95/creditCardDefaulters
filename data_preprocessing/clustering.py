@@ -61,6 +61,7 @@ class KMeansClustering:
         self.logger_object.log(self.file_object, 'Entered the create_clusters method of the KMeansClustering class')
         self.data=data
         try:
+            self.azureObj.deleteFile('models')
             self.kmeans = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=42)
             #self.data = self.data[~self.data.isin([np.nan, np.inf, -np.inf]).any(1)]
             self.y_kmeans=self.kmeans.fit_predict(data) #  divide data into clusters
